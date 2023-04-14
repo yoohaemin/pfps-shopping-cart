@@ -21,12 +21,12 @@ object ItemRoutesSuite extends HttpSuite {
     override def findAll: IO[List[Item]] =
       IO.pure(items)
     override def findBy(brand: BrandName): IO[List[Item]] =
-      IO.pure(items.find(_.brand.name === brand).toList)
+      IO.pure(items.take(1))
   }
 
   def failingItems(items: List[Item]) = new TestItems {
     override def findAll: IO[List[Item]] =
-      IO.raiseError(DummyError) *> IO.pure(items)
+      IO.raiseError[List[Item]](DummyError)
     override def findBy(brand: BrandName): IO[List[Item]] =
       findAll
   }
@@ -49,7 +49,7 @@ object ItemRoutesSuite extends HttpSuite {
       case (it, b) =>
         val req      = GET(uri"/items".withQueryParam("brand", b.name.value))
         val routes   = ItemRoutes[IO](dataItems(it)).routes
-        val expected = it.find(_.brand.name === b.name).toList
+        val expected = it.headOption.toList
         expectHttpBodyAndStatus(routes, req)(expected, Status.Ok)
     }
   }

@@ -98,8 +98,8 @@ object generators {
       n <- itemNameGen
       d <- itemDescriptionGen
       p <- moneyGen
-      b <- brandGen
-      c <- categoryGen
+      b <- brandIdGen
+      c <- categoryIdGen
     } yield Item(i, n, d, p, b, c)
 
   val cartItemGen: Gen[CartItem] =

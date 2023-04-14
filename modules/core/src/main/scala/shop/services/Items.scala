@@ -67,9 +67,9 @@ object Items {
 private object ItemSQL {
 
   val decoder: Decoder[Item] =
-    (itemId ~ itemName ~ itemDesc ~ money ~ brandId ~ brandName ~ categoryId ~ categoryName).map {
-      case i ~ n ~ d ~ p ~ bi ~ bn ~ ci ~ cn =>
-        Item(i, n, d, p, Brand(bi, bn), Category(ci, cn))
+    (itemId ~ itemName ~ itemDesc ~ money ~ brandId ~ categoryId).map {
+      case i ~ n ~ d ~ p ~ bi ~ ci =>
+        Item(i, n, d, p, bi, ci)
     }
 
   val selectAll: Query[Void, Item] =
@@ -93,8 +93,6 @@ private object ItemSQL {
     sql"""
         SELECT i.uuid, i.name, i.description, i.price, b.uuid, b.name, c.uuid, c.name
         FROM items AS i
-        INNER JOIN brands AS b ON i.brand_id = b.uuid
-        INNER JOIN categories AS c ON i.category_id = c.uuid
         WHERE i.uuid = $itemId
        """.query(decoder)
 

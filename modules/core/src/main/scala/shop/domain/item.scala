@@ -39,8 +39,8 @@ object item {
       name: ItemName,
       description: ItemDescription,
       price: Money,
-      brand: Brand,
-      category: Category
+      brand: BrandId,
+      category: CategoryId
   ) {
     def cart(q: Quantity): CartItem =
       CartItem(this, q)
