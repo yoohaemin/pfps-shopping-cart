@@ -1,20 +1,25 @@
 package shop.http.routes.secured
 
+import shop.domain.item._
+import shop.domain.order._
+import shop.http.auth.users.CommonUser
+import shop.http.vars.OrderIdVar
+import shop.programs.Proofs
+import shop.services._
+
 import cats.Monad
+import cats.effect.Clock
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server._
-import shop.domain.order._
-import shop.http.auth.users.CommonUser
-import shop.http.vars.OrderIdVar
-import shop.services._
 
-final case class OrderRoutes[F[_]: Monad](
+final case class OrderRoutes[F[_]: Monad: Clock](
     orders: Orders[F],
-    items: Items[F]
+    proofs: Proofs[F]
 ) extends Http4sDsl[F] {
+  import proofs._
 
   private[routes] val prefixPath = "/orders"
 
@@ -30,13 +35,7 @@ final case class OrderRoutes[F[_]: Monad](
         Ok {
           for {
             order <- orders.get(user.value.id, orderId)
-            items <- order.toList
-              .flatTraverse { order =>
-                order.items.keySet.toList.traverse { i =>
-                  items.findById(i)
-                }
-              }
-              .map(_.flatten)
+            items: Option[List[Item]] <- order.traverse(Order.items.toF)
           } yield (order, items)
         } else
         Ok(orders.get(user.value.id, orderId))

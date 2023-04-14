@@ -48,7 +48,7 @@ sealed abstract class HttpApi[F[_]: Async] private (
   // Secured routes
   private val cartRoutes     = CartRoutes[F](services.cart).routes(usersMiddleware)
   private val checkoutRoutes = CheckoutRoutes[F](programs.checkout).routes(usersMiddleware)
-  private val orderRoutes    = OrderRoutes[F](services.orders, services.items).routes(usersMiddleware)
+  private val orderRoutes    = OrderRoutes[F](services.orders, programs.proofs).routes(usersMiddleware)
 
   // Admin routes
   private val adminBrandRoutes    = AdminBrandRoutes[F](services.brands).routes(adminMiddleware)
