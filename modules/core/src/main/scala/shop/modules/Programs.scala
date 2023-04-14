@@ -35,4 +35,8 @@ sealed abstract class Programs[F[_]: Background: Logger: Temporal] private (
     retryPolicy
   )
 
+  val proofs: Proofs[F] = Proofs[F](
+    services.items
+  )
+
 }

@@ -8,6 +8,7 @@ import shop.domain.cart._
 import shop.domain.item._
 import shop.optics.uuid
 
+import decrel._
 import derevo.cats._
 import derevo.circe.magnolia.{ decoder, encoder }
 import derevo.derive
@@ -30,6 +31,11 @@ object order {
       items: Map[ItemId, Quantity],
       total: Money
   )
+  object Order {
+
+    case object items extends Relation.Many[Order, List, Item]
+
+  }
 
   @derive(show)
   case object EmptyCartError extends NoStackTrace
