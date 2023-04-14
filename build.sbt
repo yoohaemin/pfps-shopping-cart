@@ -89,7 +89,8 @@ lazy val core = (project in file("modules/core"))
       Libraries.refinedCats,
       Libraries.skunkCore,
       Libraries.skunkCirce,
-      Libraries.squants
+      Libraries.squants,
+      "com.yoohaemin" %% "decrel-fetch" % "0.1.0-M5"
     )
   )
 
