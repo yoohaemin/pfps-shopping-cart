@@ -49,6 +49,7 @@ object item {
 
   object Item {
     case object brand    extends Relation.Single[Item, Brand]
+    case object category extends Relation.Single[Item, Category]
   }
 
   // ----- Create item ------

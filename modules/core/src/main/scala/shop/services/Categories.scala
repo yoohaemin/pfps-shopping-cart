@@ -12,11 +12,12 @@ import skunk.implicits._
 
 trait Categories[F[_]] {
   def findAll: F[List[Category]]
+  def findByIds(ids: List[CategoryId]): F[List[Category]]
   def create(name: CategoryName): F[CategoryId]
 }
 
 object Categories {
-  def make[F[_]: GenUUID: MonadCancelThrow](
+  def make[F[_]: GenUUID: Concurrent](
       postgres: Resource[F, Session[F]]
   ): Categories[F] =
     new Categories[F] {
@@ -24,6 +25,13 @@ object Categories {
 
       def findAll: F[List[Category]] =
         postgres.use(_.execute(selectAll))
+
+      def findByIds(ids: List[CategoryId]): F[List[Category]] =
+        postgres.use { session =>
+          session.prepare(selectByIds(ids)).use { q =>
+            q.stream(ids, chunkSize = 1024).compile.toList
+          }
+        }
 
       def create(name: CategoryName): F[CategoryId] =
         postgres.use { session =>
@@ -47,6 +55,12 @@ private object CategorySQL {
     sql"""
         SELECT * FROM categories
        """.query(codec)
+
+  def selectByIds(ids: List[CategoryId]): Query[List[CategoryId], Category] =
+    sql"""
+        SELECT * FROM categories
+        WHERE id IN (${categoryId.list(ids.size)})
+        """.query(codec)
 
   val insertCategory: Command[Category] =
     sql"""

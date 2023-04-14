@@ -1,11 +1,12 @@
 package shop.programs
 
 import shop.domain.brand.Brand
+import shop.domain.category.Category
 import shop.domain.item.Item
 import shop.domain.order.Order
 import shop.effects.Background
 import shop.retries.Retry
-import shop.services.{ Brands, Items }
+import shop.services.{ Brands, Categories, Items }
 
 import cats.effect.Concurrent
 import cats.syntax.all._
@@ -14,7 +15,8 @@ import org.typelevel.log4cats.Logger
 
 final case class Proofs[F[_]: Background: Logger: Retry](
     items: Items[F],
-    brands: Brands[F]
+    brands: Brands[F],
+    categories: Categories[F]
 )(implicit override protected val CF: Concurrent[F])
     extends fetch[F] {
 
@@ -42,7 +44,21 @@ final case class Proofs[F[_]: Background: Logger: Retry](
             .map(b => i -> b)
         }
       } yield result
+    }
 
+  implicit val itemCategoryProof: Proof.Single[Item.category.type, Item, Category] =
+    implementSingleDatasource(Item.category) { (items: List[Item]) =>
+      for {
+        c <- categories.findByIds(items.map(_.category))
+        categories = c.map(c => c.uuid -> c).toMap
+        result <- items.traverse { i =>
+          CF.fromOption(
+              categories.get(i.category),
+              new RuntimeException(s"category with id ${i.category} not found")
+            )
+            .map(c => i -> c)
+        }
+      } yield result
     }
 
 }
