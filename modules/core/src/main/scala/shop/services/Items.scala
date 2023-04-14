@@ -2,7 +2,6 @@ package shop.services
 
 import shop.domain.ID
 import shop.domain.brand._
-import shop.domain.category._
 import shop.domain.item._
 import shop.effects.GenUUID
 import shop.sql.codecs._
@@ -16,6 +15,7 @@ trait Items[F[_]] {
   def findAll: F[List[Item]]
   def findBy(brand: BrandName): F[List[Item]]
   def findById(itemId: ItemId): F[Option[Item]]
+  def findByIds(itemIds: List[ItemId]): F[List[Item]]
   def create(item: CreateItem): F[ItemId]
   def update(item: UpdateItem): F[Unit]
 }
@@ -42,6 +42,13 @@ object Items {
         postgres.use { session =>
           session.prepare(selectById).use { ps =>
             ps.option(itemId)
+          }
+        }
+
+      def findByIds(itemId: List[ItemId]): F[List[Item]] =
+        postgres.use { session =>
+          session.prepare(selectByIds(itemId)).use { ps =>
+            ps.stream(itemId, chunkSize = 1024).compile.toList
           }
         }
 
@@ -95,6 +102,13 @@ private object ItemSQL {
         FROM items AS i
         WHERE i.uuid = $itemId
        """.query(decoder)
+
+  def selectByIds(ids: List[ItemId]): Query[List[ItemId], Item] =
+    sql"""
+        SELECT i.uuid, i.name, i.description, i.price, b.uuid, b.name, c.uuid, c.name
+        FROM items AS i
+        WHERE i.uuid IN ${itemId.list(ids.size)}
+       """.query[Item](decoder)
 
   val insertItem: Command[ItemId ~ CreateItem] =
     sql"""

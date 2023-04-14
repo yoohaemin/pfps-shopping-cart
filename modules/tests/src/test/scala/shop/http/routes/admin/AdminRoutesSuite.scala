@@ -64,9 +64,10 @@ protected class TestBrands(id: BrandId) extends Brands[IO] {
 }
 
 protected class TestItems(id: ItemId) extends Items[IO] {
-  def findAll: IO[List[Item]]                    = ???
-  def findBy(brand: BrandName): IO[List[Item]]   = ???
-  def findById(itemId: ItemId): IO[Option[Item]] = ???
-  def create(item: CreateItem): IO[ItemId]       = IO.pure(id)
-  def update(item: UpdateItem): IO[Unit]         = IO.unit
+  def findAll: IO[List[Item]]                          = ???
+  def findBy(brand: BrandName): IO[List[Item]]         = ???
+  def findById(itemId: ItemId): IO[Option[Item]]       = ???
+  def findByIds(itemIds: List[ItemId]): IO[List[Item]] = ???
+  def create(item: CreateItem): IO[ItemId]             = IO.pure(id)
+  def update(item: UpdateItem): IO[Unit]               = IO.unit
 }
