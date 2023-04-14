@@ -12,11 +12,12 @@ import skunk.implicits._
 
 trait Brands[F[_]] {
   def findAll: F[List[Brand]]
+  def findByIds(ids: List[BrandId]): F[List[Brand]]
   def create(name: BrandName): F[BrandId]
 }
 
 object Brands {
-  def make[F[_]: GenUUID: MonadCancelThrow](
+  def make[F[_]: GenUUID: Concurrent](
       postgres: Resource[F, Session[F]]
   ): Brands[F] =
     new Brands[F] {
@@ -24,6 +25,13 @@ object Brands {
 
       def findAll: F[List[Brand]] =
         postgres.use(_.execute(selectAll))
+
+      def findByIds(ids: List[BrandId]): F[List[Brand]] =
+        postgres.use { session =>
+          session.prepare(selectByIds(ids)).use { q =>
+            q.stream(ids, chunkSize = 1024).compile.toList
+          }
+        }
 
       def create(name: BrandName): F[BrandId] =
         postgres.use { session =>
@@ -46,6 +54,12 @@ private object BrandSQL {
   val selectAll: Query[Void, Brand] =
     sql"""
         SELECT * FROM brands
+       """.query(codec)
+
+  def selectByIds(ids: List[BrandId]): Query[List[BrandId], Brand] =
+    sql"""
+        SELECT * FROM brands b
+        WHERE b.uuid IN (${brandId.list(ids.size)})
        """.query(codec)
 
   val insertBrand: Command[Brand] =

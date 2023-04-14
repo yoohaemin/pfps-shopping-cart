@@ -44,6 +44,7 @@ object BrandRoutesSuite extends HttpSuite {
 }
 
 protected class TestBrands extends Brands[IO] {
-  def create(name: BrandName): IO[BrandId] = ID.make[IO, BrandId]
-  def findAll: IO[List[Brand]]             = IO.pure(List.empty)
+  def create(name: BrandName): IO[BrandId]           = ID.make[IO, BrandId]
+  def findAll: IO[List[Brand]]                       = IO.pure(List.empty)
+  def findByIds(ids: List[BrandId]): IO[List[Brand]] = ???
 }

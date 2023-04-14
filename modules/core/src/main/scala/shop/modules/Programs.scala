@@ -36,7 +36,8 @@ sealed abstract class Programs[F[_]: Background: Logger: Temporal] private (
   )
 
   val proofs: Proofs[F] = Proofs[F](
-    services.items
+    services.items,
+    services.brands
   )
 
 }

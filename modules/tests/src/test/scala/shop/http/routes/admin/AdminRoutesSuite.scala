@@ -59,8 +59,9 @@ object AdminRoutesSuite extends HttpSuite {
 }
 
 protected class TestBrands(id: BrandId) extends Brands[IO] {
-  def findAll: IO[List[Brand]]             = ???
-  def create(name: BrandName): IO[BrandId] = IO.pure(id)
+  def findAll: IO[List[Brand]]                       = ???
+  def create(name: BrandName): IO[BrandId]           = IO.pure(id)
+  def findByIds(ids: List[BrandId]): IO[List[Brand]] = ???
 }
 
 protected class TestItems(id: ItemId) extends Items[IO] {

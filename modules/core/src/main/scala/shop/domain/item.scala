@@ -7,6 +7,7 @@ import shop.domain.cart.{ CartItem, Quantity }
 import shop.domain.category._
 import shop.optics.uuid
 
+import decrel.Relation
 import derevo.cats._
 import derevo.circe.magnolia._
 import derevo.derive
@@ -44,6 +45,10 @@ object item {
   ) {
     def cart(q: Quantity): CartItem =
       CartItem(this, q)
+  }
+
+  object Item {
+    case object brand    extends Relation.Single[Item, Brand]
   }
 
   // ----- Create item ------

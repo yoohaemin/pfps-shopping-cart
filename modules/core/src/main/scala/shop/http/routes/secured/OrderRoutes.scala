@@ -34,7 +34,7 @@ final case class OrderRoutes[F[_]: Monad: Clock](
       if (expanded.getOrElse(false))
         Ok {
           for {
-            order <- orders.get(user.value.id, orderId)
+            order                     <- orders.get(user.value.id, orderId)
             items: Option[List[Item]] <- order.traverse(Order.items.toF)
           } yield (order, items)
         } else
