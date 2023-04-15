@@ -1,7 +1,5 @@
 package shop.http.routes.secured
 
-import shop.domain.brand.Brand
-import shop.domain.category.Category
 import shop.domain.item._
 import shop.domain.order._
 import shop.http.auth.users.CommonUser

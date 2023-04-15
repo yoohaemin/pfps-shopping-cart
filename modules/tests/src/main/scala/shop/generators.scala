@@ -20,7 +20,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import squants.market._
 
-object generators {
+object generators extends decrel.scalacheck.gen {
 
   val nonEmptyStringGen: Gen[String] =
     Gen
@@ -86,11 +86,25 @@ object generators {
       n <- brandNameGen
     } yield Brand(i, n)
 
+  implicit val itemBrandGen: Proof.Single[Item.brand.type, Item, Brand] =
+    Gen.relationSingle(Item.brand) { item =>
+      brandGen.map { brand =>
+        brand.copy(uuid = item.brand)
+      }
+    }
+
   val categoryGen: Gen[Category] =
     for {
       i <- categoryIdGen
       n <- categoryNameGen
     } yield Category(i, n)
+
+  implicit val itemCategoryGen: Proof.Single[Item.category.type, Item, Category] =
+    Gen.relationSingle(Item.category) { item =>
+      categoryGen.map { category =>
+        category.copy(uuid = item.category)
+      }
+    }
 
   val itemGen: Gen[Item] =
     for {

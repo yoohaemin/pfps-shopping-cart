@@ -10,8 +10,6 @@ import shop.services._
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
-import eu.timepit.refined.auto._
-import eu.timepit.refined.cats._
 import natchez.Trace.Implicits.noop
 import org.scalacheck.Gen
 import skunk._
@@ -67,32 +65,33 @@ object PostgresSuite extends ResourceSuite {
     }
   }
 
-  test("Items") { postgres =>
-    forall(itemGen) { item =>
-      def newItem(
-          bid: Option[BrandId],
-          cid: Option[CategoryId]
-      ) = CreateItem(
-        name = item.name,
-        description = item.description,
-        price = item.price,
-        brandId = bid.getOrElse(item.brand.uuid),
-        categoryId = cid.getOrElse(item.category.uuid)
-      )
+  test("Items".only) { postgres =>
+    forall(itemGen.expand(Item.self & Item.category & Item.brand)) {
+      case (item, category, brand) =>
+        def newItem(
+            bid: Option[BrandId],
+            cid: Option[CategoryId]
+        ) = CreateItem(
+          name = item.name,
+          description = item.description,
+          price = item.price,
+          brandId = bid.getOrElse(item.brand),
+          categoryId = cid.getOrElse(item.category)
+        )
 
-      val b = Brands.make[IO](postgres)
-      val c = Categories.make[IO](postgres)
-      val i = Items.make[IO](postgres)
+        val b = Brands.make[IO](postgres)
+        val c = Categories.make[IO](postgres)
+        val i = Items.make[IO](postgres)
 
-      for {
-        x <- i.findAll
-        _ <- b.create(item.brand.name)
-        d <- b.findAll.map(_.headOption.map(_.uuid))
-        _ <- c.create(item.category.name)
-        e <- c.findAll.map(_.headOption.map(_.uuid))
-        _ <- i.create(newItem(d, e))
-        y <- i.findAll
-      } yield expect.all(x.isEmpty, y.count(_.name === item.name) === 1)
+        for {
+          x <- i.findAll
+          _ <- b.create(brand.name)
+          d <- b.findAll.map(_.headOption.map(_.uuid))
+          _ <- c.create(category.name)
+          e <- c.findAll.map(_.headOption.map(_.uuid))
+          _ <- i.create(newItem(d, e))
+          y <- i.findAll
+        } yield expect.all(x.isEmpty, y.count(_.name === item.name) === 1)
     }
   }
 
