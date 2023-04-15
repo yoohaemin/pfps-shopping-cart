@@ -33,6 +33,7 @@ object order {
   )
   object Order {
 
+    case object self  extends Relation.Self[Order]
     case object items extends Relation.Many[Order, List, Item]
 
   }

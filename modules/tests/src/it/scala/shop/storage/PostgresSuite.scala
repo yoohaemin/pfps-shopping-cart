@@ -1,9 +1,9 @@
 package shop.storage
 
-import shop.domain._
 import shop.domain.brand._
 import shop.domain.category._
 import shop.domain.item._
+import shop.domain.order.Order
 import shop.generators._
 import shop.services._
 
@@ -62,6 +62,15 @@ object PostgresSuite extends ResourceSuite {
         y <- c.findAll
         z <- c.create(category.name).attempt
       } yield expect.all(x.isEmpty, y.count(_.name === category.name) === 1, z.isLeft)
+    }
+  }
+
+  val expandedOrderItems = Order.items <>: (Item.category & Item.brand)
+
+  test("xyz") {
+    forall(orderGen.expand(Order.self & expandedOrderItems)) {
+      case (order, items) =>
+        ???
     }
   }
 
@@ -135,4 +144,6 @@ object PostgresSuite extends ResourceSuite {
     }
   }
 
+
+  implicit def show[A]: cats.Show[A] = cats.Show.fromToString
 }

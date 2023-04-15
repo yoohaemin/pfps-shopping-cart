@@ -86,7 +86,20 @@ object generators extends decrel.scalacheck.gen {
       n <- brandNameGen
     } yield Brand(i, n)
 
-  implicit val itemBrandGen: Proof.Single[Item.brand.type, Item, Brand] =
+  def orderGen: Gen[Order] = ???
+
+  implicit val orderItemProof: Proof.Many[Order.items.type, Order, List, Item] =
+    Gen.relationMany(Order.items) { order =>
+      Gen
+        .listOfN(order.items.size, itemGen)
+        .map { items =>
+          (order.items.keySet.toList zip items).map { case (itemId, item) =>
+            item.copy(uuid = itemId)
+          }
+        }
+    }
+
+  implicit val itemBrandProof: Proof.Single[Item.brand.type, Item, Brand] =
     Gen.relationSingle(Item.brand) { item =>
       brandGen.map { brand =>
         brand.copy(uuid = item.brand)
@@ -99,7 +112,7 @@ object generators extends decrel.scalacheck.gen {
       n <- categoryNameGen
     } yield Category(i, n)
 
-  implicit val itemCategoryGen: Proof.Single[Item.category.type, Item, Category] =
+  implicit val itemCategoryProof: Proof.Single[Item.category.type, Item, Category] =
     Gen.relationSingle(Item.category) { item =>
       categoryGen.map { category =>
         category.copy(uuid = item.category)
